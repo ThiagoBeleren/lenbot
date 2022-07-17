@@ -6,9 +6,11 @@
 
 ## Screenshots
 - Quando um novo usuario entra
+
 ![App Screenshot](https://cdn.discordapp.com/attachments/996151321096892636/998364100243509268/welcome_message.jpg)
 
 - Quando um comando eh executado
+
 ![App Screenshot](https://cdn.discordapp.com/attachments/996151321096892636/998365553020391514/comando_usado.jpg)
 ## Alguns comandos ultilizados
 
