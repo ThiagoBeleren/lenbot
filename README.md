@@ -33,7 +33,6 @@
  - [Entre no meu servidor para ver o bot!](https://discord.gg/ukNgpMcU6b)
  
 
-
 ## Comming soon
 
 - A cada dia melhorando e adicionando varios comandos novos
@@ -60,7 +59,7 @@ Na aba 'Secrets' (onde tem um cadeadinho insira na parte Key a palavra 'Token' e
 `key: 'Token'`
 `Value: 'token do Bot'`
 
-Apos isso, ainda na mesma aba, com o arquivo principal a mostra da tela clicque na opcao `inserir ->`, isso fara com que sua chave do seu bot ligue ele.
+Apos isso, ainda na mesma aba, com o arquivo principal a mostra da tela clique na opcao `inserir ->` e na opcao `inserir os ->`, isso fara com que sua chave do seu bot ligue ele.
 
 
 ## Aprendizados
