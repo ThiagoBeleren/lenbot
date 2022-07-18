@@ -16,10 +16,10 @@
 
 | Comando               | Oque faz                                                |
 | ----------------- | ---------------------------------------------------------------- |
-| !ajuda     | Mostra os comandos ultilizados no bot |  
-| !flip      | Tira cara ou coroa pra voce|
-| !regras    | Mostra as regras de conduta no servidor |
-| !sobre     | Mostra informacoes sobre o autor do bot e sobre o bot|
+| -ajuda     | Mostra os comandos ultilizados no bot |  
+| -flip      | Tira cara ou coroa pra voce|
+| -regras    | Mostra as regras de conduta no servidor |
+| -sobre     | Mostra informacoes sobre o autor do bot e sobre o bot|
 
 
 ## Funcionalidades
