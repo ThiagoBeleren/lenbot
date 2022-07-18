@@ -1,3 +1,3 @@
 def Token():
-    return ' '
+    return ''
 
