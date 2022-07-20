@@ -7,7 +7,7 @@ import configs
 
 #intents.members = True
 token = configs.Token()
-bot = commands.Bot(intents= discord.Intents.all(), command_prefix="-", permissions=8)
+bot = commands.Bot(intents=discord.Intents.all(), command_prefix="-", permissions=8)
 prefixo = "-"
 
 @bot.event
@@ -47,7 +47,7 @@ async def on_command(ctx, member: discord.Member = None):
         embed = discord.Embed(description=f"Voce nao pode mandar comandos por aqui {ctx.author.mention}")
         await ctx.send(embed=embed)
         print(f'{ctx.author.mention} digitou o comando no canal errado')
-        #delete message
+        await ctx.message.delete()
         
     elif channel_id == 923236110744830032:
         return 
@@ -66,19 +66,25 @@ async def on_raw_reaction_add(payload):
             role = discord.utils.get(guild.roles, name="Programadores 💻")
         
         if emoji == '👑':
-            role = discord.utils.get(guild.roles, name="Anime fan 👑")
+            role = discord.utils.get(guild.roles, name="Anime_Fan 👑")
             
         if emoji == '🎶':
-            role = discord.utils.get(guild.roles, name="Just Chill 🎶")
+            role = discord.utils.get(guild.roles, name="Just_Chill 🎶")
             
         if emoji == "🏠":
             role = discord.utils.get(guild.roles, name="Rioters 🏠")
             
         if emoji == "🏆":
-            role = discord.utild.get(guild.roles, name="Indie 🏆")
+            role = discord.utils.get(guild.roles, name="Indie 🏆")
+            
+        if emoji == '🎵':
+            role = discord.utils.get(guild.roles, name="Rhythm_Games 🎵")    
             
         if emoji == '🕹️':
             role = discord.utils.get(guild.roles, name='Casual 🕹️')
+            
+        if emoji == '⚔️':
+            role = discord.utils.get(guild.roles, name='Competitivo ⚔️')
             
         if emoji == '🔫':
             role = discord.utils.get(guild.roles, name="FPS 🔫")
@@ -101,19 +107,25 @@ async def on_raw_reaction_remove(payload):
             role = discord.utils.get(guild.roles, name="Programadores 💻")
         
         if emoji == '👑':
-            role = discord.utils.get(guild.roles, name="Anime fan 👑")
+            role = discord.utils.get(guild.roles, name="Anime_Fan 👑")
             
         if emoji == '🎶':
-            role = discord.utils.get(guild.roles, name="Just Chill 🎶")
-            
+            role = discord.utils.get(guild.roles, name="Just_Chill 🎶")
+        
         if emoji == "🏠":
             role = discord.utils.get(guild.roles, name="Rioters 🏠")
             
         if emoji == "🏆":
-            role = discord.utild.get(guild.roles, name="Indie 🏆")
+            role = discord.utils.get(guild.roles, name="Indie 🏆")
+            
+        if emoji == '🎵':
+            role = discord.utils.get(guild.roles, name="Rhythm_Games 🎵")
             
         if emoji == '🕹️':
             role = discord.utils.get(guild.roles, name='Casual 🕹️')
+            
+        if emoji == '⚔️':
+            role = discord.utils.get(guild.roles, name='Competitivo ⚔️')
             
         if emoji == '🔫':
             role = discord.utils.get(guild.roles, name="FPS 🔫")
@@ -189,7 +201,22 @@ async def roles(ctx):
         await reaction.add_reaction('🔫')
         await reaction.add_reaction('🎲')
     
+
+@bot.command(aliases=["Member_1", 'Member_2'])
+async def vaidarnamoro(ctx, member : discord.Member = None):
+    embed = discord.Embed(description="**Bem-vindos ao simulador de vai dar namoro.**\n"
+                          "Para Jogar eh mt simples adicione dois usuarios a sua escolha e veja se vai dar namoro. EMBREVE!!!")
+    embed.set_thumbnail(url=bot.user.avatar.url)
+    await ctx.send(embed=embed)
     
+    '''
+    def check(m):
+        return m.content == member.guild + member.guild and member.guild != member.guild and m.content == m.channel
+    msg = await bot.wait_for('message', check=check, timeout=60.0)
+    '''
+@bot.command()
+async def proucurar(ctx):
+    await ctx.send('Proucura por photos ou gifs do que voce tiver proucurando e mostrara na forma de embed. Em Breve!!!')
 @bot.command()
 async def twitch(ctx):
     channel_live = bot.get_channel(988883848060354620)
