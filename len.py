@@ -7,9 +7,8 @@ import configs
 
 #intents.members = True
 token = configs.Token()
-bot = commands.Bot(intents= discord.Intents.all(), command_prefix="-")
+bot = commands.Bot(intents= discord.Intents.all(), command_prefix="-", permissions=8)
 prefixo = "-"
-
 
 @bot.event
 async def on_ready():
@@ -21,16 +20,23 @@ async def on_ready():
 async def on_member_join(member):
     guild = member.guild #guild = server
     welcome_channel = bot.get_channel(911058863774654517)
+    role_channel = bot.get_channel(911064432472367154)
 
     embed3 = discord.Embed(description=f":partying_face: Bem vindo ao servidor, {member.mention}.\n Espero que se divirta por aqui.")
-    embed3.add_field(name='Integrantes', value=f'você é o {len(guild.members)}* integrante do total de {len(guild.members)} participantes do servidor.', inline=False)
+    embed3.add_field(name='Integrantes', value=f'você é o {len(guild.members)}* participante do servidor. Nao se esquece de pegar um cargo no {role_channel.mention}', inline=False)
     embed3.set_author(name=member.display_name, icon_url=member.display_avatar)
     embed3.add_field(name='ID', value=member.id, inline=False)
     embed3.set_image(url="https://cdn.discordapp.com/attachments/996151321096892636/997995707615162388/tenor.gif")
     await welcome_channel.send(embed=embed3)
     print(f'{member.mention}, entrou no servidor')
 
-
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Please pass in all requirements :rolling_eyes:.')
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You dont have all the requirements :angry:")
+        
 #Verifica se o canal eh realmente o de comando no momento em que o member mandar a mensagem!
 @bot.event
 async def on_command(ctx, member: discord.Member = None):
@@ -44,9 +50,146 @@ async def on_command(ctx, member: discord.Member = None):
         #delete message
         
     elif channel_id == 923236110744830032:
-        return ' '
+        return 
 
+@bot.event
+@commands.has_permissions(administrator=True)
+async def on_raw_reaction_add(payload):
+
+    member = payload.member
+    guild = member.guild
+    emoji = payload.emoji.name
+    role_message_id = 999072734954921994
+    if role_message_id == payload.message_id:
         
+        if emoji == '💻':
+            role = discord.utils.get(guild.roles, name="Programadores 💻")
+        
+        if emoji == '👑':
+            role = discord.utils.get(guild.roles, name="Anime fan 👑")
+            
+        if emoji == '🎶':
+            role = discord.utils.get(guild.roles, name="Just Chill 🎶")
+            
+        if emoji == "🏠":
+            role = discord.utils.get(guild.roles, name="Rioters 🏠")
+            
+        if emoji == "🏆":
+            role = discord.utild.get(guild.roles, name="Indie 🏆")
+            
+        if emoji == '🕹️':
+            role = discord.utils.get(guild.roles, name='Casual 🕹️')
+            
+        if emoji == '🔫':
+            role = discord.utils.get(guild.roles, name="FPS 🔫")
+            
+        if emoji == '🎲':
+            role = discord.utils.get(guild.roles, name="RPG 🎲")
+            
+        await member.add_roles(role)
+    
+
+@bot.event
+@commands.has_permissions(administrator=True)
+async def on_raw_reaction_remove(payload):
+    role_message_id = 999072734954921994
+    if role_message_id == payload.message_id:
+        guild = await(bot.fetch_guild(payload.guild_id))
+        emoji = payload.emoji.name
+        
+        if emoji == '💻':
+            role = discord.utils.get(guild.roles, name="Programadores 💻")
+        
+        if emoji == '👑':
+            role = discord.utils.get(guild.roles, name="Anime fan 👑")
+            
+        if emoji == '🎶':
+            role = discord.utils.get(guild.roles, name="Just Chill 🎶")
+            
+        if emoji == "🏠":
+            role = discord.utils.get(guild.roles, name="Rioters 🏠")
+            
+        if emoji == "🏆":
+            role = discord.utild.get(guild.roles, name="Indie 🏆")
+            
+        if emoji == '🕹️':
+            role = discord.utils.get(guild.roles, name='Casual 🕹️')
+            
+        if emoji == '🔫':
+            role = discord.utils.get(guild.roles, name="FPS 🔫")
+            
+        if emoji == '🎲':
+            role = discord.utils.get(guild.roles, name="RPG 🎲")
+        
+        member = await(guild.fetch_member(payload.user_id))
+        if member is not None:
+            await member.remove_roles(role)
+        else:
+            print('Member not found! :(')
+#https://www.youtube.com/watch?v=0Yr4ddt7vbI&t=230s, exceedcoding credits.
+    
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def kick(ctx, member : discord.Member, *,reason = None):
+    guild = discord.utils.get(guild.roles, name="Moderadores")
+    if ctx.author == 911000560109514752 or guild:
+        await ctx.kick(reason = reason)
+        
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def ban(ctx, member : discord.Member, *,reason = None):
+    guild = discord.utils.get(guild.roles, name="Moderadores")
+    if ctx.author == 911000560109514752 or guild:
+        await ctx.ban(reason = reason)
+        
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def unban(ctx, *, member):
+    guild = discord.utils.get(guild.roles, name="Moderadores")
+    if ctx.author == 911000560109514752 or guild:
+        banned_users = await ctx.guild.bans()
+        member_name, member_discriminator = member.split("#")
+
+        for ban_entry in banned_users:
+            user = ban_entry.user
+
+            if (user.name, user.discriminator) == (member_name, member_discriminator):
+                await ctx.guild.unban(user)
+                await ctx.send(f'Unbanned {user.mention}')
+                return
+        
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def roles(ctx):
+    
+    if ctx.author.is_owner(911000560109514752):
+        role_channel = bot.get_channel(911064432472367154)
+        embed = discord.Embed(description="**Pegue algum cargo!** \n Mencione algum destes cargos para interagir com membros de mesmo gosto", colour=15844367)
+        embed.set_image(url="https://cdn.discordapp.com/attachments/996151321096892636/999071769279353023/tenor_1.gif")
+        embed.add_field(name="💻- Programadores", value="Gosta de criar")
+        embed.add_field(name="👑- Anime Fan", value='Anime fan')
+        embed.add_field(name="🎶- Just Chill", value="Gosta de interajir")
+        embed.add_field(name="🏠- Jogador da dona RIOT", value='Jogar jogos da Riot')
+        embed.add_field(name="🎵- Rhythm Games", value="Jogos de Musica")
+        embed.add_field(name="🏆- Jogador de Indies", value="Jogos Independentes")
+        embed.add_field(name="🕹️- Jogador Casual", value="Companhia pra jogar")
+        embed.add_field(name="⚔️- Jogador de ranked", value="Companhia pra ranked")
+        embed.add_field(name="🔫- Jogador de FPS", value="Jogar jogos de tiro")
+        embed.add_field(name="🎲- Jogador de RPG", value="Jogador de RPG de mesa, grupo ou video-game")
+        reaction = await role_channel.send(embed=embed)
+    
+        await reaction.add_reaction('💻')
+        await reaction.add_reaction('👑')
+        await reaction.add_reaction('🎶')
+        await reaction.add_reaction('🏠')
+        await reaction.add_reaction('🏆')
+        await reaction.add_reaction('🎵')
+        await reaction.add_reaction('🕹️')
+        await reaction.add_reaction('⚔️')
+        await reaction.add_reaction('🔫')
+        await reaction.add_reaction('🎲')
+    
+    
 @bot.command()
 async def twitch(ctx):
     channel_live = bot.get_channel(988883848060354620)
