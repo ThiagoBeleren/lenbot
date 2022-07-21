@@ -66,4 +66,6 @@ Apos isso, ainda na mesma aba, com o arquivo principal a mostra da tela clique n
 
 - Esse bot eh um exemplo de como criar um bot no discord em python, esse projeto eh para ensinar quem tem duvida, qualquer duvida so entrar no servidor que ajudamos sempre que pudermos!.
 
-
+##Creditos
+- [discord.py: How to use Spotify class in a embed?](https://stackoverflow.com/questions/62373839/discord-py-how-to-use-spotify-class-in-a-embed/62373956#62373956)
+- [exceedcoding](https://www.youtube.com/watch?v=0Yr4ddt7vbI&t=230s)
