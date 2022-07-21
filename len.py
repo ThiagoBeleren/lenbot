@@ -244,24 +244,26 @@ async def images(ctx):
 @bot.command(aliases=['whois', 'user'])
 async def status(ctx, member: discord.Member = None):
     if member:
-        if not member.id in [923236110744830032, 988887114634629130]:
+        if not member.id in [923236110744830032]:
             if member.activity == None:
                 activity = 'Inactive'
-
+                await ctx.send(activity)
+                
             elif type(member.activity) == discord.Spotify:
-                activity = 'Spotify'
+                activity = 'Spotify' 
+                embed = discord.Embed(color=member.top_role.color.value, title=f'Atividade que {member} esta fazendo :headphones:', url=member.activity.track_url)
+                embed.add_field(name="**Nome da Musica**", value=member.activity.title)
+                embed.add_field(name='**Activity**', value={activity}, inline=True)
+                embed.set_image(url=member.activity.album_cover_url)
+                embed.add_field(name="**Album**", value=member.activity.album, inline=False)
+                embed.add_field(name='**Artista(s)**', value=member.activity.artist, inline=False)
+                await ctx.send(embed=embed)
                            
             else:
                 activity = f'{member.activity.name}'
-
-            embed = discord.Embed(color=member.top_role.color.value, title=f'Atividade que {member} esta fazendo :headphones:', url=member.activity.track_url)
-            embed.add_field(name="**Nome da Musica**", value=member.activity.title)
-            embed.add_field(name='**Activity**', value={activity}, inline=True)
-            embed.set_image(url=member.activity.album_cover_url)
-            embed.add_field(name="**Album**", value=member.activity.album, inline=False)
-            embed.add_field(name='**Artista(s)**', value=member.activity.artist, inline=False)
-            
-            await ctx.send(embed=embed)
+                embed = discord.Embed(color=member.top_role.color.value, title=f'Atividade que {member} esta fazendo')
+                embed.add_field(name='**Activity**', value=f'{activity}', inline=True)
+                await ctx.send(embed=embed)
 
 
 @bot.command()

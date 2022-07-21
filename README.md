@@ -37,7 +37,7 @@
 
 - A cada dia melhorando e adicionando varios comandos novos
 - Simulador de namoro
-- Buscar pelo google (imagens, gifs)comando!
+- Spotify interaction
 
 ## Variáveis de Ambiente
 
