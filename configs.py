@@ -1,0 +1,3 @@
+def Token():
+    return ''
+
