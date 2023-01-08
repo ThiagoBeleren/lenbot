@@ -15,7 +15,8 @@ class Commands(commands.Cog):
 
     @commands.slash_command()
     async def regras(self, ctx: commands.Context):
-        command_channel = self.bot.get_channel(ctx.guild)
+        member = ctx.author
+        command_channel = self.bot.get_channel(member)
         embed4 = discord.Embed(title=f'Regras de conduta no servidor', color=10181046)
         embed4.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
         embed4.set_thumbnail(url=self.bot.user.avatar.url)
@@ -58,35 +59,44 @@ class Commands(commands.Cog):
         buttoninvitebot = Button(label="Convidar o bot",
                                  style=discord.ButtonStyle.url,
                                  url="https://discord.com/api/oauth2/authorize?client_id=991165635356794881&permissions=8&scope=bot")
-        buttonservidor = Button(label="Meu Servidor",
+        buttonbotserver = Button(label="Meu Servidor",
                                 style=discord.ButtonStyle.url,
                                 url="https://discord.gg/trRtuX97ch")
         buttonaboutme = Button(label="Sobre Mim",
                                style=discord.ButtonStyle.green,
                                )
-
+        buttoniniviteguild = Button(label="Convite para seu servidor",
+                                    style=discord.ButtonStyle.blurple)
         #add_buttons
         view = View()
         view.add_item(buttoninvitebot)
-        view.add_item(buttonservidor)
+        view.add_item(buttonbotserver)
         view.add_item(buttonaboutme)
+        view.add_item(buttoniniviteguild)
 
         #buttons callback
         async def buttonaboutmecallback(interaction: discord.Interaction):
             await interaction.response.send_message(embed=embed, ephemeral=True)
         buttonaboutme.callback = buttonaboutmecallback
 
+        async def buttoninviteguildcallback(interaction: discord.Interaction):
+            for guild in self.bot.guilds:
+                discord_guild = self.bot.get_guild(int(guild.id))
+                link = await discord_guild.text_channels[0].create_invite(max_uses=0, unique=False)
+                await interaction.response.send_message(link)
+                print(link)
+        buttoniniviteguild.callback = buttoninviteguildcallback
+
         #vars
         autor = self.bot.get_user(911000560109514752)
 
         embed = discord.Embed(
             title="Sobre mim",
-            description="Fui criado para ajudar em moderacoes de servidor, music e varias outras funcoes. A cada dia evoluindo mais e mais para todos os servidores.\n"
-                        "Estou sempre disposto a ouvir sugestoes :man_mage:, contatos do meu criador esta no link abaixo :wink:",
+            description="Fui criado para ajudar em moderacoes de servidor, music e varias outras funcoes. A cada dia evoluindo mais e mais para todos os servidores.\n",
             url="https://github.com/ThiagoBeleren/lenbot"
         )
-        embed.add_field(name="Sobre o Bot", value=f"O bot e de uso livre, criador por {autor.mention}")
-        embed.set_author(name=self.bot.user.name, url="")
+        embed.add_field(name="Sobre o Bot", value=f"O bot e de uso livre, criador por {autor.display_name}")
+        embed.set_author(name=self.bot.user.name)
         embed.set_thumbnail(url=self.bot.user.avatar.url)
 
         embed1 = discord.Embed(title="Comandos usados por mim")
@@ -158,14 +168,39 @@ class Commands(commands.Cog):
             print(f'mensagem de live enviada ao canal {channel_live}')
 
 
-    @commands.slash_command()
-    async def invite(self, ctx: commands.Context):
-        for guild in self.bot.guilds:
-            discord_guild = self.bot.get_guild(int(guild.id))
-            link = await discord_guild.text_channels[0].create_invite(max_uses=0, unique=False)
-            await ctx.respond(link)
-            print(link)
 
+
+    """
+    @bot.slash_command()
+    @commands.has_permissions(administrator=True)
+    async def roles(ctx):
+
+            role_channel = bot.get_channel(911064432472367154)
+            embed = discord.Embed(description="**Pegue algum cargo!** \n Mencione algum destes cargos para interagir com membros de mesmo gosto", colour=15844367)
+            embed.set_image(url="https://cdn.discordapp.com/attachments/996151321096892636/999071769279353023/tenor_1.gif")
+            embed.add_field(name="💻- Programadores", value="Gosta de criar")
+            embed.add_field(name="👑- Anime Fan", value='Anime fan')
+            embed.add_field(name="🎶- Just Chill", value="Gosta de interajir")
+            embed.add_field(name="🏠- Jogador da dona RIOT", value='Jogar jogos da Riot')
+            embed.add_field(name="🎵- Rhythm Games", value="Jogos de Musica")
+            embed.add_field(name="🏆- Jogador de Indies", value="Jogos Independentes")
+            embed.add_field(name="🕹️- Jogador Casual", value="Companhia pra jogar")
+            embed.add_field(name="⚔️- Jogador de ranked", value="Companhia pra ranked")
+            embed.add_field(name="🔫- Jogador de FPS", value="Jogar jogos de tiro")
+            embed.add_field(name="🎲- Jogador de RPG", value="Jogador de RPG de mesa, grupo ou video-game")
+            reaction = await role_channel.send(embed=embed)
+
+            await reaction.add_reaction('💻')
+            await reaction.add_reaction('👑')
+            await reaction.add_reaction('🎶')
+            await reaction.add_reaction('🏠')
+            await reaction.add_reaction('🏆')
+            await reaction.add_reaction('🎵')
+            await reaction.add_reaction('🕹️')
+            await reaction.add_reaction('⚔️')
+            await reaction.add_reaction('🔫')
+            await reaction.add_reaction('🎲')
+    """
 
 def setup(bot):
     bot.add_cog(Commands(bot))
