@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import asyncio
+
 
 class Events(commands.Cog):
     def __init__(self, bot):
@@ -13,11 +13,8 @@ class Events(commands.Cog):
         role_channel = self.bot.get_channel(911064432472367154)
         embed = discord.Embed(
                             description=f":partying_face: Bem vindo ao servidor, {member.mention}. \n"
-                                        f"Espero que se divirta por aqui.")
-        embed.add_field(name='Integrantes',
-                        value=f"Você é o **{len(guild.members)}** participante do servidor. \n"
-                              f"Nao se esqueca de pegar um cargo no {role_channel.mention}",
-                        inline=False)
+                                        f"Espero que se divirta por aqui."
+                                        f"Você é o **{len(guild.members)}** participante do servidor. \n")
         embed.set_author(name=member.display_name,
                          icon_url=member.display_avatar)
         embed.set_footer(text="ID \n"
@@ -25,6 +22,7 @@ class Events(commands.Cog):
         embed.set_image(url="https://cdn.discordapp.com/attachments/996151321096892636/997995707615162388/tenor.gif")
         await welcome_channel.send(embed=embed)
         print(f'{member.mention}, entrou no servidor')
+
 
     @commands.Cog.listener()
     @commands.has_permissions(administrator=True)

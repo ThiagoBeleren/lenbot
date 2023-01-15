@@ -28,7 +28,7 @@ class Commands(commands.Cog):
         embed4.add_field(name=":three:",
                          value="Nao e permitido o spam de mensagem nos canais de texto e em qualquer usuario deste servidor",
                          inline=False)
-        embed4.add_field(name=":four:", value=f"Comandos so serao permitidos na aba {command_channel.mention}")
+        embed4.add_field(name=":four:", value=f"Comandos so serao permitidos na aba de **Comandos**")
         await ctx.respond(embed=embed4)
 
 
@@ -112,10 +112,8 @@ class Commands(commands.Cog):
 
 
     @commands.slash_command(description="Mostra o status de um membro")
-    async def status(self, ctx: commands.Context, member: discord.Member=None):
+    async def status(self, ctx: commands.Context, member: discord.Member):
         if member:
-            if member == None:
-                member = ctx.author
                 if member.activity == None:
                     activity = 'Inactive'
                     await ctx.respond(activity)
@@ -124,7 +122,7 @@ class Commands(commands.Cog):
                         activity = 'Spotify'
                         embed = discord.Embed(color=member.top_role.color.value,
                                             title=f'Atividade que {member} esta fazendo :headphones:',
-                                            url=member.activity.track_url, timestamp=ctx.message.created_at)
+                                            url=member.activity.track_url)
                         embed.add_field(name="**Nome da Musica**",
                                         value=member.activity.title)
                         embed.add_field(name='**Activity**',
@@ -139,6 +137,18 @@ class Commands(commands.Cog):
                                         inline=False)
                         await ctx.respond(embed=embed)
 
+                elif type(member.activity) == discord.Streaming:
+                    activity = 'Streaming'
+                    embed = discord.Embed(title=f"{member.activity.twitch_name} esta ao vivo em {member.activity.platform}! 🔴",
+                                                   color=member.color)
+                    embed.add_field(name="**Titulo**",
+                                    value=f"{member.activity.name}")
+                    embed.add_field(name="**Game: **",
+                                    value=f"{member.activity.game}")
+                    embed.set_thumbnail(url=f"{member.activity.url}")
+                    embed.set_image(url=f"{member.display_avatar}")
+                    await ctx.respond(embed=embed)
+
                 else:
                         activity = f'{member.activity.name}'
                         embed = discord.Embed(color=member.top_role.color.value,
@@ -148,30 +158,8 @@ class Commands(commands.Cog):
                                         inline=True)
                         await ctx.respond(embed=embed)
 
-
-    @commands.slash_command()
-    async def twitch(self, ctx: commands.Context):
-        channel_live = self.bot.get_channel(988883848060354620)
-        allowed_mentions = discord.AllowedMentions(everyone=True)
-
-        command_channel = self.bot.get_channel(923236110744830032)
-        print(f"{ctx.author}, {command_channel}, {channel_live}")
-
-        if ctx.author.is_owner(911000560109514752):
-            print(f"{ctx.author}, {command_channel}, {channel_live}")
-            embed = discord.Embed(description=f"ESTOU EM LIVE!")
-            embed.add_field(name="Venha ver agora!", value="https://www.twitch.tv/ezdeterno", inline="False")
-            embed.add_field(name="Quer ter sua mensagem vista na live? mande-a pelo pix!",
-                            value="Chave: thiagobeleren@gmail.com")
-            embed.set_image(url='https://i.pinimg.com/564x/b7/c6/e5/b7c6e50a80b89476537711767aa677dd.jpg')
-            await channel_live.send(embed=embed, content='@everyone', allowed_mentions=allowed_mentions)
-            print(f'mensagem de live enviada ao canal {channel_live}')
-
-
-
-
     """
-    @bot.slash_command()
+    @bot.slash_command(guild_ids=[911058863774654514])
     @commands.has_permissions(administrator=True)
     async def roles(ctx):
 
