@@ -1,6 +1,6 @@
 import discord
-from discord.ui import Button, View
 from discord.ext import commands
+from discord.ui import Button, View
 
 class Buttons(commands.Cog):
     def __init__(self, bot):
@@ -43,6 +43,6 @@ class Buttons(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Buttons(bot))
+  bot.add_cog(Buttons(bot))
 
 
