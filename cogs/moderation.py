@@ -45,13 +45,13 @@ class Moderation(commands.Cog):
         return
     print(user.display_name, user.id)
 
-  '''
+
   @commands.slash_command(aliases=['shutdown'])
   @commands.has_permissions(administrator=True)
   async def shutdown(self, ctx: commands.Context):
     await ctx.respond('Desligando o bot...')
     await self.bot.close()
-  '''
+
   
   @commands.slash_command(aliases=['userinfo'])
   @commands.has_permissions(administrator=True)
