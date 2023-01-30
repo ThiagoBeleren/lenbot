@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import os
 import platform
+import configs
 
 intents = discord.Intents.all()
 bot = commands.Bot(intents=intents, permissions=8, command_prefix="/")
@@ -22,5 +23,5 @@ for filename in os.listdir("./cogs"):
     bot.load_extension(f"cogs.{filename[:-3]}")
 
 
-bot.run(os.environ['TOKEN'])
+bot.run(configs.Token())
 

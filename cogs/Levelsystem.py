@@ -240,7 +240,7 @@ class Levelsystem(commands.Cog):
 
     await ctx.send(
       f"{member.mention}, Parabens , seu nivel aumentou para **{increase_by}**"
-    )  #birthday emoji
+    )  
 
   @commands.slash_command(description="aumentar xp")
   @commands.has_role("Moderador")
