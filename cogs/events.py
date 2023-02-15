@@ -11,10 +11,9 @@ class Events(commands.Cog):
   async def on_member_join(self, member):
     guild = member.guild  # guild = server
     welcome_channel = member.guild.system_channel
-    role_channel = self.bot.get_channel(911064432472367154)
     embed = discord.Embed(
       description=f":partying_face: Bem vindo ao servidor, {member.mention}. \n"
-      f"Espero que se divirta por aqui."
+      f"Espero que se divirta por aqui. \n"
       f"Você é o **{len(guild.members)}** participante do servidor. \n")
     embed.set_author(name=member.display_name, icon_url=member.display_avatar)
     embed.set_footer(text="ID \n"

@@ -3,7 +3,9 @@ import wavelink
 import typing 
 import asyncio
 import os
+import configs
 
+from wavelink.ext import spotify
 from threading import Thread
 from discord.ext import commands
 from discord.ui import Button, View
@@ -22,13 +24,8 @@ class Music(commands.Cog):
                                                    host = "127.0.0.1",
                                                    port = 2333,
                                                    password = "lenbot123",
+                                                   spotify_client=spotify.SpotifyClient(client_id=configs.SpotifyClientID, client_secret=configs.SpotifyClientSecret)
                                                    )
-    
-    async def buttons(self):
-        pause_btn = Button(style=discord.ButtonStyle.gray,
-                           emoji="⏯️")
-        view = View()
-        view.add_item(pause_btn)
         
     @commands.Cog.listener()
     async def on_ready(self):
@@ -85,17 +82,19 @@ class Music(commands.Cog):
                 await vc.play(search)
                 await ctx.respond(embed=discord.Embed(title="Tocando Agora 🎶", description=f"{search.title}", url=f"{search.uri}")
                                   .add_field(name="Author", value=f"{search.author}")
-                                  .add_field(name="Duração", value=f"`{search.length/60}m`")
-                                  .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar))
+                                  .add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
+                                  .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
+                                  .set_image(url=f"{search.thumb}"))
             except:
                 pass
         else:
             self.queue.append(search)
             await ctx.respond(embed=discord.Embed(title="Adicionado a fila: ", description=f"{search.title}", url=f"{search.uri}")
                                                     .add_field(name="Author", value=f"{search.author}")
-                                                    .add_field(name="Duração", value=f"`{search.length/60}m`")
-                                                    .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar))
-            
+                                                    .add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
+                                                    .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
+                                                    .set_image(url=f"{search.thumb}"))
+                                                    
     @commands.slash_command(description="Pauses the song")
     async def pause(self, ctx: commands.Context):
         node = wavelink.NodePool.get_node()
