@@ -15,35 +15,9 @@ class Moderation(commands.Cog):
     if isinstance(error, commands.MissingPermissions):
       await ctx.send("Voce nao tem todas as permissoes :angry:")
 
-  @commands.slash_command()
-  @commands.has_permissions(kick_members=True)
-  async def kick(self, ctx, member: discord.Member, *, reason):
-    await ctx.kick(reason=reason)
-    await ctx.send(reason)
-    print(member.display_name, member.id, reason)
 
-  @commands.slash_command()
-  @commands.has_permissions(ban_members=True, administrator=True)
-  async def ban(self, ctx, member: discord.Member, *, reason):
-    await member.ban(reason=reason)
-    await ctx.respond(f'O {member.name} foi banido por {reason}')
-    print(member.display_name, member.id, reason)
 
-  @commands.slash_command()
-  @commands.has_permissions(administrator=True)
-  async def unban(self, ctx, *, member):
-    banned_users = await ctx.guild.bans()
-    member_name, member_discriminator = member.split("#")
-
-    for ban_entry in banned_users:
-      user = ban_entry.user
-
-      if (user.name, user.discriminator) == (member_name,
-                                             member_discriminator):
-        await ctx.guild.unban(user)
-        await ctx.send(f'Unbanned {user.mention}')
-        return
-    print(user.display_name, user.id)
+  
 
 
   @commands.slash_command(aliases=['shutdown'])
