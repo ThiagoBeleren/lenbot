@@ -1,7 +1,10 @@
 import discord
 import json
 import os
+import requests
+import sqlite3
 
+from datetime import datetime
 from discord import File
 from discord.ext import commands
 from discord.ui import Button
@@ -18,7 +21,7 @@ from easy_pil import Editor, load_image_async, Font
 
 #if you want to give role to the user at any specific level upgrade then you can do like this
 #enter the name of the role in a list
-level = ["Level-5+", "Level-10+", "Level-15+"]
+level = ["Newbie", "Dona do Scat", "Dona Saori"]
 
 #add the level number at which you want to give the role
 level_num = [5, 10, 15]
@@ -29,10 +32,7 @@ class Levelsystem(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
-  @commands.Cog.listener()
-  async def on_ready(self):
-    print("Leveling Cog Ready!")
-
+    
   # this will increase the user's xp everytime they message
   @commands.Cog.listener()
   async def on_message(self, message):
@@ -157,7 +157,7 @@ class Levelsystem(commands.Cog):
         color="#ff9933",
       )
       card = File(fp=background.image_bytes, filename="zCARD.png")
-      await ctx.respond(file=card)
+      await ctx.send(file=card)
 
   @commands.slash_command(description="Tabela de rank do servidor ")
   async def servidorrank(self, ctx, range_num=10):
@@ -222,7 +222,7 @@ class Levelsystem(commands.Cog):
     with open("levels.json", "w") as f:
       json.dump(data, f)
 
-    await ctx.send(f"{member.mention}' Resetou seus dados")  #sad emoji
+    await ctx.respond(f"{member.mention}' Resetou seus dados")  #sad emoji
 
   @commands.slash_command(description="aumentar nivel")
   @commands.has_role("Moderador")
@@ -238,9 +238,9 @@ class Levelsystem(commands.Cog):
     with open("levels.json", "w") as f:
       json.dump(data, f)
 
-    await ctx.send(
+    await ctx.respond(
       f"{member.mention}, Parabens , seu nivel aumentou para **{increase_by}**"
-    )  #birthday emoji
+    )  
 
   @commands.slash_command(description="aumentar xp")
   @commands.has_role("Moderador")

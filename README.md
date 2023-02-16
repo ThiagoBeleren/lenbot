@@ -17,8 +17,6 @@
 | Comandos (/)               | Oque faz                                                |
 | ----------------- | ---------------------------------------------------------------- |
 | ajuda     | Mostra os comandos ultilizados no bot |  
-| flip      | Tira cara ou coroa pra voce|
-| regras    | Mostra as regras de conduta no servidor |
 | sobre     | Mostra informacoes sobre o autor do bot e sobre o bot|
 
 
@@ -26,8 +24,8 @@
 
 - Upgrade to Slash Commands(/)
 - Mensagem se boas-vindas personalizada quando alguem entra
-- Varios outros comandos...
-- Embeds para mensagem do bot
+- Bot de musica com lavalink/wavelink
+- LevelSystem
 
 ## Veja em pratica!
 
@@ -36,8 +34,12 @@
 
 ## Comming soon
 
-- A cada dia melhorando e adicionando varios comandos novos
-- Simulador de namoro
+- Wavelink com spotify suport
+- Musica com botoes
+- Playlist de musicas Youtube e spotify
+- Shuffle commands
+- Economy bot
+- Error handling
 
 ## Variáveis de Ambiente
 
