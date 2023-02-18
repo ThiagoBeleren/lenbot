@@ -35,7 +35,7 @@ class userModeration(commands.Cog):
                         f"*Relatorio: {reason}* \n")
         embed.set_footer(text=f"{type} por {ctx.author} \n"
                          f"em _{self.date}_ as {self.hour}")
-        await ctx.send(embed=embed)
+        await ctx.respond(embed=embed)
     
     async def addwarn(self, ctx, member, reason, time, warnings):
         await self.addembed(ctx, member, reason, type = 'advertido')

@@ -26,6 +26,39 @@ class Music(commands.Cog):
                                                    password = "lenbot123",
                                                    spotify_client=spotify.SpotifyClient(client_id=configs.SpotifyClientID, client_secret=configs.SpotifyClientSecret)
                                                    )
+
+    async def music_embed(self, ctx, search, titlee):
+      embed = discord.Embed(title=f"{titlee} 🎶", description=f"{search.title}", url=f"{search.uri}")
+      embed.add_field(name="Author", value=f"{search.author}")
+      embed.add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
+      embed.set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
+      embed.set_image(url=f"{search.thumb}")
+      await ctx.respond(embed=embed)
+      
+    async def add_play(self, ctx, * search):
+      try:
+            search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
+      except:
+            await ctx.respond('nao achei nenhum resultado')
+            return self.queue[0]
+        
+      node = wavelink.NodePool.get_node()
+      player = node.get_player(ctx.guild)
+        
+      if not ctx.voice_client:
+            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+      else:
+            vc: wavelink.Player = ctx.voice_client
+        
+      if not vc.is_playing():
+          try:
+                await vc.play(search)
+                await self.music_embed(ctx, search, titlee)
+          except:
+                pass
+      else:
+            self.queue.append(search)
+            await self.music_embed(ctx, search, titlee)
         
     @commands.Cog.listener()
     async def on_ready(self):
@@ -63,37 +96,8 @@ class Music(commands.Cog):
             
     @commands.slash_command(description="plays a song (youtube)")
     async def play(self, ctx: commands.Context, *, search: str):
-        try:
-            search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
-        except:
-            await ctx.respond('nao achei nenhum resultado')
-            return self.queue[0]
-        
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
-        
-        if not ctx.voice_client:
-            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
-        else:
-            vc: wavelink.Player = ctx.voice_client
-        
-        if not vc.is_playing():
-            try:
-                await vc.play(search)
-                await ctx.respond(embed=discord.Embed(title="Tocando Agora 🎶", description=f"{search.title}", url=f"{search.uri}")
-                                  .add_field(name="Author", value=f"{search.author}")
-                                  .add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
-                                  .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
-                                  .set_image(url=f"{search.thumb}"))
-            except:
-                pass
-        else:
-            self.queue.append(search)
-            await ctx.respond(embed=discord.Embed(title="Adicionado a fila: ", description=f"{search.title}", url=f"{search.uri}")
-                                                    .add_field(name="Author", value=f"{search.author}")
-                                                    .add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
-                                                    .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
-                                                    .set_image(url=f"{search.thumb}"))
+        await self.add_play(ctx, search, title="Tocando agora")
+          
                                                     
     @commands.slash_command(description="Pauses the song")
     async def pause(self, ctx: commands.Context):
