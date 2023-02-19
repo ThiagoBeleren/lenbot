@@ -226,7 +226,7 @@ class Levelsystem(commands.Cog):
 
   @commands.slash_command(description="aumentar nivel")
   @commands.has_role("Moderador")
-  async def servidoraumentarnivel(self, ctx, increase_by: int,
+  async def aumentarnivel(self, ctx, increase_by: int,
                                   user: discord.Member):
     member = user or ctx.author
 
@@ -244,7 +244,7 @@ class Levelsystem(commands.Cog):
 
   @commands.slash_command(description="aumentar xp")
   @commands.has_role("Moderador")
-  async def servidoraumentarxp(self, ctx, increase_by: int,
+  async def aumentarxp(self, ctx, increase_by: int,
                                user: discord.Member):
     member = user or ctx.author
 

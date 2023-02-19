@@ -16,10 +16,6 @@ class Moderation(commands.Cog):
       await ctx.send("Voce nao tem todas as permissoes :angry:")
 
 
-
-  
-
-
   @commands.slash_command(aliases=['shutdown'])
   @commands.has_permissions(administrator=True)
   async def shutdown(self, ctx: commands.Context):

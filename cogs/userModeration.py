@@ -4,7 +4,6 @@ import discord
 
 from datetime import datetime
 from discord.ext import commands
-from pytz import timezone
     
 class userModeration(commands.Cog):
     def __init__(self, bot):
@@ -12,7 +11,6 @@ class userModeration(commands.Cog):
         self.date = datetime.now()
         self.hour = 2
 
-      
     @commands.Cog.listener()
     async def on_ready(self):
         db = sqlite3.connect("warnings.sqlite")
@@ -28,7 +26,8 @@ class userModeration(commands.Cog):
         cursorban.execute("CREATE TABLE IF NOT EXISTS userbans(user, guild, date, hour, banned by, reason)")
       
         print("SQL server READY!")
-    
+
+  
     async def addembed(self, ctx, member: discord.Member, reason, type):
         embed = discord.Embed(title=f"Um membro foi {type} deste servidor! 😔")
         embed.add_field(name="Motivo", value=f"`User: {member.mention} ` \n"
@@ -36,12 +35,13 @@ class userModeration(commands.Cog):
         embed.set_footer(text=f"{type} por {ctx.author} \n"
                          f"em _{self.date}_ as {self.hour}")
         await ctx.respond(embed=embed)
-    
+
+  
     async def addwarn(self, ctx, member, reason, time, warnings):
         await self.addembed(ctx, member, reason, type = 'advertido')
         db = sqlite3.connect("warning.sqlite")
         cursor = db.cursor()
-        cursor.execute("INSERT INTO userwarnings(user, guild, warns, date, hour, time, reason) VALUES (?, ?, ?, ?, ?, ?)", (member.id, ctx.guild.id, self.date, self.hour, time, reason))
+        cursor.execute("INSERT INTO userwarnings(user, guild, warnings, date, hour, time, reason) VALUES (?, ?, ?, ?, ?, ?)", (member.id, ctx.guild.id, self.date, self.hour, time, reason))
 
         cursor.execute("SELECT warnings FROM userwarnings WHERE user = ? AND guild = ?", (member.id, ctx.guild.id))
         data = cursor.fetchall()
@@ -53,7 +53,6 @@ class userModeration(commands.Cog):
             await asyncio.sleep(time*60)
             await member.remove_roles(muteRole)
             await ctx.respond(f"{member.mention} has been umuted")
-        
         db.commit()
 
     async def addkick(self, ctx, member: discord.Member, reason: str):
@@ -90,7 +89,21 @@ class userModeration(commands.Cog):
         cursor = db.cursor()
         cursor.execute("SELECT * FROM userbans WHERE user = ? AND guild = ?", (member.id, ctx.guild.id))
         cursor.execute("DELETE FROM userbans WHERE user = ? AND guild = ?", (member.id, ctx.guild.id))
-        
+      
+        banned_users = await ctx.guild.bans()
+        member_name, member_discriminator = member.split("#")
+  
+        for ban_entry in banned_users:
+          user = ban_entry.user
+    
+          if (user.name, user.discriminator) == (member_name,
+                                                 member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'Unbanned {user.mention}')
+            return
+                                                   
+        print(user.display_name, user.id)
+      
     @commands.slash_command(description="Expulse um membro ")
     @commands.has_permissions(kick_members=True)
     async def kickuser(self, ctx, member: discord.Member, reason: str):
@@ -112,24 +125,13 @@ class userModeration(commands.Cog):
     @commands.slash_command(description="Remova uma advertecia de um membro")
     @commands.has_permissions(kick_members=True, manage_roles=True)
     async def removewarnuser(self, ctx, member: discord.Member, reason : str):
-        await self.removewarn(ctx, member)
+        await self.removewarn(ctx, member, reason)
 
 
     @commands.slash_command(description="Remova o ban de um membro")
     @commands.has_permissions(administrator=True)
-    async def unban(self, ctx, *, member):
-      banned_users = await ctx.guild.bans()
-      member_name, member_discriminator = member.split("#")
-  
-      for ban_entry in banned_users:
-        user = ban_entry.user
-  
-        if (user.name, user.discriminator) == (member_name,
-                                               member_discriminator):
-          await ctx.guild.unban(user)
-          await ctx.send(f'Unbanned {user.mention}')
-          return
-      print(user.display_name, user.id)
+    async def unban(self, ctx, member: discord.Member, reason : str):
+      await self.removeban(ctx, member, reason)
       
 def setup(bot):
     bot.add_cog(userModeration(bot))

@@ -7,7 +7,6 @@ import configs
 intents = discord.Intents.all()
 bot = commands.Bot(intents=intents, permissions=8, command_prefix="/")
 intents.members = True
-connections = {}
 
 @bot.event
 async def on_ready():

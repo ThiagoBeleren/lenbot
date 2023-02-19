@@ -24,42 +24,96 @@ class Music(commands.Cog):
                                                    host = "127.0.0.1",
                                                    port = 2333,
                                                    password = "lenbot123",
-                                                   spotify_client=spotify.SpotifyClient(client_id=configs.SpotifyClientID, client_secret=configs.SpotifyClientSecret)
+                          spotify_client=spotify.SpotifyClient(client_id=configs.SpotifyClientID,
+                                                   client_secret=configs.SpotifyClientSecret)
                                                    )
 
-    async def music_embed(self, ctx, search, titlee):
-      embed = discord.Embed(title=f"{titlee} 🎶", description=f"{search.title}", url=f"{search.uri}")
-      embed.add_field(name="Author", value=f"{search.author}")
-      embed.add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
-      embed.set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
-      embed.set_image(url=f"{search.thumb}")
-      await ctx.respond(embed=embed)
+    async def music_embed(self, ctx, search, title):
+        embed = discord.Embed(title=f"{title} 🎶", description=f"{search.title}", url=f"{search.uri}")
+        embed.add_field(name="Author", value=f"{search.author}")
+        embed.add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
+        embed.set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
+        embed.set_image(url=f"{search.thumb}")
+        await ctx.respond(embed=embed)
       
-    async def add_play(self, ctx, * search):
-      try:
-            search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
-      except:
-            await ctx.respond('nao achei nenhum resultado')
-            return self.queue[0]
+    async def add_play(self, ctx, search):
+        try:
+              search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
+        except:
+              await ctx.respond('nao achei nenhum resultado')
+              return self.queue[0]
+          
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
+          
+        if not ctx.voice_client:
+              vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        else:
+              vc: wavelink.Player = ctx.voice_client
+          
+        if not vc.is_playing():
+            try:
+                  await vc.play(search)
+                  await self.music_embed(ctx, search, title="Tocando Agora")
+            except:
+                  pass
+        else:
+              self.queue.append(search)
+              self.music_embed(ctx, search, title="Adicionado a fila")
+
+    async def add_pause(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
         
-      node = wavelink.NodePool.get_node()
-      player = node.get_player(ctx.guild)
+        if player is None:
+            ctx.send('Nao estou conectado a nenhum canal de voz!')
+            
+        if not player.is_paused():
+            if player.is_playing():
+                await player.pause()
+                await ctx.respond(embed=discord.Embed(title='Musica Pausada!'))
+                    
+        if player.is_paused():
+            await player.resume()
+            await ctx.edit(embed=discord.Embed(title='Musica Despausada!'))
+                
+        else:
+            await ctx.send('Nao a musicas na playlist 😔')
+
+    async def add_stop(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
         
-      if not ctx.voice_client:
-            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
-      else:
-            vc: wavelink.Player = ctx.voice_client
+        if player is None:
+            ctx.send('Nao estou conectado a nenhum canal de voz!')
+            
+        self.queue.clear()
         
-      if not vc.is_playing():
-          try:
-                await vc.play(search)
-                await self.music_embed(ctx, search, titlee)
-          except:
-                pass
-      else:
-            self.queue.append(search)
-            await self.music_embed(ctx, search, titlee)
+        try:
+            if player.is_playing():
+                await player.stop()
+                await ctx.respond(embed=discord.Embed(title="Playlist Parada!"))
+        except:
+            await ctx.respond("Nao ha nada tocando agora! ")
+
+    async def add_skip(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
         
+        if player is None:
+            ctx.send('Nao estou conectado a nenhum canal de voz!')
+        
+        if not len(self.queue) == 0:
+            next_track: wavelink.Track = self.queue[0]
+            
+            if player.is_playing():
+                try:
+                    await player.play(next_track)
+                except:
+                    await ctx.respond('Nao a musicas na playlist 😔')
+                
+            await self.music_embed(ctx, search=next_track, title="Tocando agora")
+          
     @commands.Cog.listener()
     async def on_ready(self):
         print('Music COG is ready!')
@@ -101,62 +155,15 @@ class Music(commands.Cog):
                                                     
     @commands.slash_command(description="Pauses the song")
     async def pause(self, ctx: commands.Context):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
-        
-        if player is None:
-            ctx.send('Nao estou conectado a nenhum canal de voz!')
-            
-        if not player.is_paused():
-            if player.is_playing():
-                await player.pause()
-                await ctx.respond(embed=discord.Embed(title='Musica Pausada!'))
-                    
-        if player.is_paused():
-            await player.resume()
-            await ctx.edit(embed=discord.Embed(title='Musica Despausada!'))
-                
-        else:
-            await ctx.send('Nao a musicas na playlist 😔')
+        await self.set_pause(ctx)
             
     @commands.slash_command(description="Stops the song")
     async def stop(self, ctx: commands.Context):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
-        
-        if player is None:
-            ctx.send('Nao estou conectado a nenhum canal de voz!')
-            
-        self.queue.clear()
-        
-        try:
-            if player.is_playing():
-                await player.stop()
-                await ctx.respond(embed=discord.Embed(title="Playlist Parada!"))
-        except:
-            await ctx.respond("Nao ha nada tocando agora! ")
+        await self.add_stop(ctx)
 
     @commands.slash_command(description="Skips the song")
     async def skip(self, ctx: commands.Context):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
-        
-        if player is None:
-            ctx.send('Nao estou conectado a nenhum canal de voz!')
-        
-        if not len(self.queue) == 0:
-            next_track: wavelink.Track = self.queue[0]
-            
-            if player.is_playing():
-                try:
-                    await player.play(next_track)
-                except:
-                    await ctx.respond('Nao a musicas na playlist 😔')
-                
-            await ctx.respond(embed=discord.Embed(title="Tocando Agora 🎶", description=f"{next_track.title}", url=f"{next_track.uri}")
-                                .add_field(name="Author", value=f"{next_track.author}")
-                                .add_field(name="Duração", value=f"`{next_track.length/60}m`")
-                                .set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar))
+        await self.add_skip(ctx)  
       
     @commands.slash_command(description="Shows the queue")
     async def queue(self, ctx: commands.Context):
