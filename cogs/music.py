@@ -4,12 +4,19 @@ import typing
 import asyncio
 import os
 import configs
+import random
 
-from wavelink.ext import spotify
+from typing import Union
 from threading import Thread
 from discord.ext import commands
 from discord.ui import Button, View
+from wavelink import (SoundCloudTrack, YouTubeMusicTrack, YouTubePlaylist,
+                      YouTubeTrack)
+from wavelink.ext import spotify
+from wavelink.ext.spotify import SpotifyTrack
+from wavelink import Player
 
+    
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -32,19 +39,88 @@ class Music(commands.Cog):
         embed = discord.Embed(title=f"{title} 🎶", description=f"{search.title}", url=f"{search.uri}")
         embed.add_field(name="Author", value=f"{search.author}")
         embed.add_field(name="Duração", value=f"`{round(search.length/60, 2)}m`")
-        embed.set_footer(text=f"adicionado por {ctx.author}", icon_url=ctx.author.display_avatar)
+        embed.set_footer(text=f"adicionado por {ctx.author}")# icon_url=ctx.author.display_avatar)
         embed.set_image(url=f"{search.thumb}")
         await ctx.respond(embed=embed)
       
-    async def add_play(self, ctx, search):
-        try:
-              search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
-        except:
-              await ctx.respond('nao achei nenhum resultado')
-              return self.queue[0]
-          
+    async def music_buttons(self, ctx):
+        back_btn = Button(style=discord.ButtonStyle.gray,
+                          emoji="⏪",
+                          disabled=True,
+                          )
+        pause_btn = Button(style=discord.ButtonStyle.gray,
+                           emoji="⏯️",
+                           )
+        skip_btn = Button(style=discord.ButtonStyle.gray,
+                           emoji="⏩",
+                           )
+        shuffle_btn = Button(style=discord.ButtonStyle.secondary,
+                             emoji="🔀",
+                             disabled=False,
+                             )
+        stop_btn = Button(style=discord.ButtonStyle.red,
+                          emoji="⏹️",
+                          )
+        repeat_btn = Button(style=discord.ButtonStyle.secondary,
+                            emoji="🔁",
+                            disabled=False,
+                            )
+        
+        view = View()
+        view.add_item(back_btn) 
+        view.add_item(pause_btn)
+        view.add_item(skip_btn)
+        view.add_item(shuffle_btn)
+        view.add_item(stop_btn)
+        view.add_item(repeat_btn)
+        
+        async def backBTN(interaction: discord.Interaction):
+            return
+        
+        async def pauseBTN(interaction: discord.Interaction):
+            await self.pause_add(ctx)
+        pause_btn.callback = pauseBTN
+        
+        async def skipBTN(interaction: discord.Interaction):
+            await self.skip_add(ctx)
+        skip_btn.callback = skipBTN
+        
+        async def shuffleBTN(interaction: discord.Interaction):
+            await self.shuffle_add(ctx)
+        shuffle_btn.callback = shuffleBTN
+        
+        async def stopBTN(interaction: discord.Interaction):
+            await self.stop_add
+        stop_btn.callback = stopBTN
+        
+        async def repeatBTN(interaction: discord.Interaction):
+            await self.repeat_add(ctx)
+        repeat_btn.callback = repeatBTN
+        
+        await ctx.respond(view=view)
+    
+    async def play_add(self, ctx: commands.Context, search: str, provider=None):
+        
+        Provider = Union[YouTubeTrack, YouTubePlaylist, YouTubeMusicTrack, SoundCloudTrack, SpotifyTrack]
+        
+        track_providers = {
+            "youtube": YouTubeTrack,
+            "youtubeplaylist": YouTubePlaylist,
+            "youtubemusic": YouTubeMusicTrack,
+            "soundcloud": SoundCloudTrack,
+            "spotify": SpotifyTrack,
+        }
+        
+        search = search.strip("<>")
+        
         node = wavelink.NodePool.get_node()
         player = node.get_player(ctx.guild)
+        
+        try:
+            search = await wavelink.YouTubeTrack.search(query=search, return_first=True)
+        except:
+            await ctx.respond('Nao achei nenhum resultado')
+            return self.queue[0]
           
         if not ctx.voice_client:
               vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
@@ -53,50 +129,56 @@ class Music(commands.Cog):
           
         if not vc.is_playing():
             try:
-                  await vc.play(search)
-                  await self.music_embed(ctx, search, title="Tocando Agora")
+                await vc.play(search)
+                await self.music_embed(ctx, search, title="Tocando Agora")
+                await self.music_buttons(ctx)
+                
             except:
                   pass
         else:
-              self.queue.append(search)
-              self.music_embed(ctx, search, title="Adicionado a fila")
-
-    async def add_pause(self, ctx):
+            self.queue.append(search)
+            await ctx.respond(embed=discord.Embed(title="Adicionado a fila: ", description=f"`{search.title}` - **{search.author}**"))
+        
+    async def pause_add(self, ctx):
         node = wavelink.NodePool.get_node()
         player = node.get_player(ctx.guild)
         
+        msg = await ctx.send("Pausando... ⏸️")
+        
         if player is None:
-            ctx.send('Nao estou conectado a nenhum canal de voz!')
+            msg.edit('Nao estou conectado a nenhum canal de voz!')
             
-        if not player.is_paused():
-            if player.is_playing():
-                await player.pause()
-                await ctx.respond(embed=discord.Embed(title='Musica Pausada!'))
-                    
         if player.is_paused():
             await player.resume()
-            await ctx.edit(embed=discord.Embed(title='Musica Despausada!'))
-                
+            await msg.edit(embed=discord.Embed(title='Musica Despausada!'))
+                    
+        elif not player.is_paused():
+            if player.is_playing():
+                await player.pause()
+                await msg.edit(embed=discord.Embed(title='Musica Pausada!'))
+                    
         else:
-            await ctx.send('Nao a musicas na playlist 😔')
+            await msg.edit('Nao a musicas na playlist 😔')
 
-    async def add_stop(self, ctx):
+    async def stop_add(self, ctx):
         node = wavelink.NodePool.get_node()
         player = node.get_player(ctx.guild)
         
+        msg = await ctx.send("Parando... ⏹️")
+        
         if player is None:
-            ctx.send('Nao estou conectado a nenhum canal de voz!')
+            msg.edit('Nao estou conectado a nenhum canal de voz!')
             
         self.queue.clear()
         
         try:
             if player.is_playing():
                 await player.stop()
-                await ctx.respond(embed=discord.Embed(title="Playlist Parada!"))
+                await msg.edit(embed=discord.Embed(title="Playlist Parada!"))
         except:
-            await ctx.respond("Nao ha nada tocando agora! ")
+            await msg.edit("Nao ha nada tocando agora! ")
 
-    async def add_skip(self, ctx):
+    async def skip_add(self, ctx):
         node = wavelink.NodePool.get_node()
         player = node.get_player(ctx.guild)
         
@@ -113,7 +195,56 @@ class Music(commands.Cog):
                     await ctx.respond('Nao a musicas na playlist 😔')
                 
             await self.music_embed(ctx, search=next_track, title="Tocando agora")
-          
+            await self.music_buttons(ctx)
+    
+    async def shuffle_add(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
+        
+        if not len(self.queue) == 0:
+            random.shuffle(self.queue)
+            msg = await ctx.respond("Ordem de reproducao aleatoria ativada! 🕺")
+            
+            mbed = discord.Embed(
+                title=f"Tocando Agora 🎶: {player.track}" 
+                if player.is_playing() 
+                else "Queue: ",
+                description = "\n".join(f"**{i+1}**. `{track}`" for i, 
+                                        track in enumerate(self.queue[:20])) 
+                                            if not player.is_playing() else "**Queue: **\n" + "\n".join(f"**{i+1}. `{track}`" for i, 
+                                                track in enumerate(self.queue[:20])),
+                color=discord.Color.from_rgb(255, 255, 255)
+            )
+
+            return await msg.reply(embed=mbed)
+        else:
+            return await msg.reply(embed=discord.Embed(title="The queue is empty", color=discord.Color.from_rgb(255, 255, 255)))
+        
+    async def repeat_add(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
+        return
+
+    async def queue_add(self, ctx):
+        node = wavelink.NodePool.get_node()
+        player = node.get_player(ctx.guild)
+        
+        if not len(self.queue) == 0:
+            mbed = discord.Embed(
+                title=f"Tocando Agora 🎶: {player.track}" 
+                if player.is_playing() 
+                else "Queue: ",
+                description = "\n".join(f"**{i+1}**. `{track}`" for i, 
+                                        track in enumerate(self.queue[:20])) 
+                                            if not player.is_playing() else "**Queue: **\n" + "\n".join(f"**{i+1}. `{track}`" for i, 
+                                                track in enumerate(self.queue[:20])),
+                color=discord.Color.from_rgb(255, 255, 255)
+            )
+
+            return await ctx.respond(embed=mbed)
+        else:
+            return await ctx.respond(embed=discord.Embed(title="A lista esta vazia", color=discord.Color.from_rgb(255, 255, 255)))
+
     @commands.Cog.listener()
     async def on_ready(self):
         print('Music COG is ready!')
@@ -135,13 +266,15 @@ class Music(commands.Cog):
             if not len(self.queue) == 0:
                 next_track: wavelink.Track = self.queue[0]
                 channel = self.bot.get_channel(923236110744830032)
+                ctx = commands.Context
                 
                 try:
                     await player.play(next_track)
                 except:
-                    return await channel.send(embed=discord.Embed(title="Algo deu errado ao tocar a musica"))
+                    return await channel.respond(embed=discord.Embed(title="Algo deu errado ao tocar a musica"))
                 
-                await channel.send(embed=discord.Embed(title="Tocando Agora 🎶", description=f"{next_track.title}"))
+                await self.music_embed(ctx, search=next_track, title="Tocando Agora")
+                await self.music_buttons(ctx)
                 
             else:
                 pass
@@ -150,41 +283,36 @@ class Music(commands.Cog):
             
     @commands.slash_command(description="plays a song (youtube)")
     async def play(self, ctx: commands.Context, *, search: str):
-        await self.add_play(ctx, search, title="Tocando agora")
-          
-                                                    
+        await self.play_add(ctx, search)
+                                                 
     @commands.slash_command(description="Pauses the song")
     async def pause(self, ctx: commands.Context):
-        await self.set_pause(ctx)
+        await self.pause_add(ctx)
             
     @commands.slash_command(description="Stops the song")
     async def stop(self, ctx: commands.Context):
-        await self.add_stop(ctx)
+        await self.stop_add(ctx)
 
     @commands.slash_command(description="Skips the song")
     async def skip(self, ctx: commands.Context):
-        await self.add_skip(ctx)  
+        await self.skip_add(ctx)  
       
+    @commands.slash_command(description="Shuffle a playlist")
+    async def shuffle(self, ctx: commands.Context):
+        await self.shuffle_add(ctx)
+        
     @commands.slash_command(description="Shows the queue")
     async def queue(self, ctx: commands.Context):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
+        await self.queue_add(ctx)
+    
+    @commands.slash_command(description="Repeats the current song of the queue")
+    async def repeat(self, ctx: commands.Context):
+        await self.repeat_add(ctx)
         
-        if not len(self.queue) == 0:
-            mbed = discord.Embed(
-                title=f"Tocando Agora 🎶: {player.track}" 
-                if player.is_playing() 
-                else "Queue: ",
-                description = "\n".join(f"**{i+1}. `{track}`" for i, 
-                                        track in enumerate(self.queue[:20])) 
-                                            if not player.is_playing() else "**Queue: **\n" + "\n".join(f"**{i+1}. `{track}`" for i, 
-                                                track in enumerate(self.queue[:20])),
-                color=discord.Color.from_rgb(255, 255, 255)
-            )
-
-            return await ctx.respond(embed=mbed)
-        else:
-            return await ctx.respond(embed=discord.Embed(title="The queue is empty", color=discord.Color.from_rgb(255, 255, 255)))
+    @commands.slash_command(description="Adds your youtube playlist")
+    async def playlist(self, ctx: commands.Context):
+        return
+        
         
     """
     @commands.slash_command(name="searchs for a song")

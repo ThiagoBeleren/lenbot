@@ -13,24 +13,24 @@ class Commands(commands.Cog):
 
   @commands.slash_command(description="Tira cara ou coroa")
   async def flip(self, ctx: commands.Context):
-    channel = ctx.channel
-    moeda = random.randint(1, 2)
-    await channel.send('[1] para cara \n'
-                       '[2] para coroa')
+      channel = ctx.channel
+      moeda = random.randint(1, 2)
+      await channel.send('[1] para cara \n'
+                        '[2] para coroa')
 
-    def check(m):
-      return m.content == '1' or '2' and m.channel == channel
+      def check(m):
+        return m.content == '1' or '2' and m.channel == channel
 
-      self.bot.wait_for('message', check=check, timeout=60.0)
+        self.bot.wait_for('message', check=check, timeout=60.0)
 
-    if moeda == 1:
-      moeda = 'cara'
-    elif moeda == 2:
-      moeda = 'coroa'
+      if moeda == 1:
+        moeda = 'cara'
+      elif moeda == 2:
+        moeda = 'coroa'
 
-    await channel.send(
-      f'A face da moeda eh {moeda} {ctx.author.mention}! :partying_face:')
-    print(moeda)
+      await channel.send(
+        f'A face da moeda eh {moeda} {ctx.author.mention}! :partying_face:')
+      print(moeda)
 
   @commands.slash_command(description="Alguns comandos usados por mim")
   async def ajuda(self, ctx: commands.Context):
@@ -64,7 +64,7 @@ class Commands(commands.Cog):
 
     async def buttoninviteguildcallback(interaction: discord.Interaction):
       for guild in self.bot.guilds:
-        discord_guild = self.bot.get_guild(int(guild.id))
+        discord_guild = self.bot.get_guild(int(ctx.guild.id))
         link = await discord_guild.text_channels[0].create_invite(max_uses=0,
                                                                   unique=False)
         await interaction.response.send_message(link)

@@ -18,14 +18,12 @@ class botModerationn(commands.Cog):
     if isinstance(error, commands.MissingPermissions):
       await ctx.send("Voce nao tem todas as permissoes :angry:")
 
-  
   @commands.slash_command(aliases=['shutdown'])
   @commands.has_permissions(administrator=True)
   async def shutdown(self, ctx: commands.Context):
     await ctx.respond('Desligando o bot...')
     await self.bot.close()
 
-  
   @commands.slash_command(aliases=['userinfo'])
   @commands.has_permissions(administrator=True)
   async def userinfo(self,
