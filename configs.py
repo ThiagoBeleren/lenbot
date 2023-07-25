@@ -1,12 +1,10 @@
-import os
-
 def Token():
-  return os.environ['TOKEN']
+  return ''
 
 
 def SpotifyClientID():
-  return os.environ['spotifyClientId']
+  return ''
 
 
 def SpotifyClientSecret():
-  return os.getenv['spotifyClientSecret']
+  return ''

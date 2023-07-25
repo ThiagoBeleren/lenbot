@@ -5,8 +5,9 @@ import platform
 import configs
 
 intents = discord.Intents.all()
-bot = commands.Bot(intents=intents, permissions=8, command_prefix="/")
 intents.members = True
+bot = commands.Bot(intents=intents, permissions=8, command_prefix="/")
+
 
 @bot.event
 async def on_ready():
@@ -17,10 +18,12 @@ async def on_ready():
   print(f"Python Version: {str(platform.python_version())}")
 
 #Cogs / Modules
+
 for filename in os.listdir("./cogs"):
   if filename.endswith(".py"):
     bot.load_extension(f"cogs.{filename[:-3]}")
 
 
 bot.run(configs.Token())
+
 
