@@ -4,6 +4,15 @@ import random
 
 from discord.ext import commands
 from discord.ui import Button, View
+from wavelink.ext import spotify
+
+import configs
+
+
+class CustomPlayerQueue(wavelink.Player):
+    def __init__(self):
+        super().__init__()
+        self.queue = wavelink.Queue()
 
 
 class Music(commands.Cog):
@@ -16,11 +25,20 @@ class Music(commands.Cog):
         
     async def create_nodes(self):
         await self.bot.wait_until_ready()
+        sc = spotify.SpotifyClient(
+            client_id = configs.SpotifyClientID(),
+            client_secret = configs.SpotifyClientSecret()
+        )
         node: wavelink.Node = wavelink.Node(
             uri = "127.0.0.1:2333",
             password = "youshallnotpass",
         )
-        await wavelink.NodePool.connect(client=self.bot, nodes=[node])
+        await wavelink.NodePool.connect(client=self.bot, nodes=[node], spotify=sc)
+
+    async def _stop(self, player):
+        await player.stop()
+        player.queue.clear()
+        await player.disconnect(force=False)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -29,34 +47,6 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_wavelink_node_ready(self, node: wavelink.Node):
         print(f"Node '{node.id}' is ready!")
-        
-    @commands.Cog.listener()
-    async def on_wavelink_track_start(self, player: wavelink.Player, track: wavelink.YouTubeTrack):
-        try:
-            self.queue.pop(0)
-        except:
-            pass
-      
-    @commands.Cog.listener()
-    async def on_wavelink_track_end(self, player: wavelink.Player, track: wavelink.YouTubeTrack, reason):
-        if reason == 'FINISHED':
-            if not len(self.queue) == 0:
-                next_track: wavelink.YouTubeTrack = self.queue[0]
-                channel = self.bot.get_channel(923236110744830032)
-                ctx = commands.Context
-                
-                try:
-                    await player.play(next_track)
-                except:
-                    return await channel.respond(embed=discord.Embed(title="Algo deu errado ao tocar a musica"))
-                
-                await self.music_embed(ctx, search=next_track, title="Tocando Agora")
-                await self.music_buttons(ctx)
-                
-            else:
-                pass
-        else:
-            print(reason)
     
     async def music_embed(self, ctx, search, title):
         embed = discord.Embed(title=f"{title} 🎶", description=f"{search.title}", url=f"{search.uri}")
@@ -124,70 +114,116 @@ class Music(commands.Cog):
 
     @commands.slash_command(description="plays a song (youtube)")
     async def play_add(self, ctx: commands.Context, *, search: str):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
+        vc = ctx.voice_client
 
-        if not ctx.voice_client:
-            vc: wavelink.Player = await ctx.author.voice.channel.connect(cls=wavelink.Player)
+        if not vc:
+            custom_player_queue = CustomPlayerQueue()
+            vc: CustomPlayerQueue = await ctx.author.voice.channel.connect(cls=custom_player_queue)
+
+        if "https://open.spotify.com/playlist" in search or "https://open.spotify.com/intl-pt/album" in search:
+            try:
+                async for track in spotify.SpotifyTrack.iterator(query=search):
+                    await vc.queue.put_wait(track)
+
+                    if not vc.is_playing():
+                        await vc.play(track)
+
+                await ctx.send("Playlist Detected")
+                embed = discord.Embed(title=track.title[0])
+                embed.add_field(name="Artist", value='\n'.join(str(artist) for artist in track.artists))
+                embed.set_image(url=track.images[0])
+                await ctx.respond(embed=embed)
+            except:
+                await ctx.send("Playlist or album not found")
+
+        elif "https://open.spotify.com/intl-pt/track" in search:
+            query: list[spotify.SpotifyTrack] = await spotify.SpotifyTrack.search(search)
+            query: spotify.SpotifyTrack = query[0]
+            embed = discord.Embed(title=query.title)
+            embed.add_field(name="Artist", value='\n'.join(str(artist) for artist in query.artists))
+            embed.set_image(url=query.images[0])
+            await ctx.respond(embed=embed)
+
+
         else:
-            vc: wavelink.Player = ctx.voice_client
+            if not "https://www.youtube.com/playlist" in search:
+                query: list[wavelink.YouTubeMusicTrack] = await wavelink.YouTubeMusicTrack.search(search)
+                query: wavelink.GenericTrack = query[0]
 
-        query = await wavelink.YouTubeTrack.search(search)
-        await vc.play(query)
+            else:
+                print("youtube playlist")
+                playlist: list[wavelink.YouTubePlaylist] = await wavelink.YouTubePlaylist.search(search)
 
-        
+                tracks = playlist.tracks
+                for i in tracks:
+
+                    query: wavelink.GenericTrack = i
+                    await vc.queue.put_wait(query)
+
+                    if not vc.is_playing():
+                        await vc.play(query)
+
+                await ctx.send(f"Playlist Added To Queue")
+
+        if vc.queue.is_empty and not vc.is_playing():
+            await vc.play(query)
+
+        else:
+            await vc.queue.put_wait(query)
+
+        #await vc.queue.put_wait(tracks[0])
+        #track: wavelink.YouTubeTrack = tracks[0]
+
+
     async def pause_add(self, ctx):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
+        vc = ctx.voice_client
         
         msg = await ctx.send("Pausando... ⏸️")
         
-        if player is None:
-            msg.edit('Nao estou conectado a nenhum canal de voz!')
+        if vc is None:
+            await msg.edit('Nao estou conectado a nenhum canal de voz!')
             
-        if player.is_paused():
-            await player.resume()
+        if vc.is_paused():
+            await vc.resume()
             await msg.edit(embed=discord.Embed(title='Musica Despausada!'))
                     
-        elif not player.is_paused():
-            if player.is_playing():
-                await player.pause()
+        elif not vc.is_paused():
+            if vc.is_playing():
+                await vc.pause()
                 await msg.edit(embed=discord.Embed(title='Musica Pausada!'))
                     
         else:
             await msg.edit('Nao a musicas na playlist 😔')
 
     async def stop_add(self, ctx):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
+        vc = ctx.voice_client
         
         msg = await ctx.send("Parando... ⏹️")
         
-        if player is None:
+        if vc is None:
             msg.edit('Nao estou conectado a nenhum canal de voz!')
             
-        self.queue.clear()
+        vc.queue.clear()
         
         try:
-            if player.is_playing():
-                await player.stop()
+            if vc.is_playing():
+                await vc.stop()
                 await msg.edit(embed=discord.Embed(title="Playlist Parada!"))
         except:
             await msg.edit("Nao ha nada tocando agora! ")
 
     async def skip_add(self, ctx):
-        node = wavelink.NodePool.get_node()
-        player = node.get_player(ctx.guild)
+        vc = ctx.voice_client
         
-        if player is None:
+        if vc is None:
             ctx.send('Nao estou conectado a nenhum canal de voz!')
         
         if not len(self.queue) == 0:
-            next_track: wavelink.Track = self.queue[0]
+            next_track: vc.queue.put_wait()
             
-            if player.is_playing():
+            if vc.is_playing():
                 try:
-                    await player.play(next_track)
+                    await vc.play(next_track)
                 except:
                     await ctx.respond('Nao a musicas na playlist 😔')
                 
