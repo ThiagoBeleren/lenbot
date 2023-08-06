@@ -1,5 +1,5 @@
 def Token():
-  return 'OTkxMTY1NjM1MzU2Nzk0ODgx.GLQFkC.zaJ_zfQzs-VbOxiEwnxwysn25kCIsgtuS02QhU'
+  return ''
 
 
 def SpotifyClientID():
