@@ -1,10 +1,10 @@
-def Token():
+def token():
   return ''
 
 
-def SpotifyClientID():
+def spotify_client_id():
   return ''
 
 
-def SpotifyClientSecret():
+def spotify_client_secret():
   return ''
